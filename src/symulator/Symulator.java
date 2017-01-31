@@ -31,7 +31,7 @@ public class Symulator extends JPanel {
     private Point mouseCoords = new Point();
     private boolean mouseOnScreen = false;
     // Kulki
-    int j = 200; //iloĹ›Ä‡ kulek
+    int j = 2; //iloĹ›Ä‡ kulek
     Ball[] Ball = new Ball[j];
     static int klatki = 60; // Liczba klatek/ramek na sekundÄ™
 
@@ -53,7 +53,7 @@ public class Symulator extends JPanel {
         double pdn = Utils.Norm(pd);
         pd = Utils.Normalize(pd);
         //zderzenia
-        if (pdn <= Ball[i].Distance(Ball[k])) {
+        if (pdn < Ball[i].Distance(Ball[k])) {
 
             //odpychamy od siebie kulki wzdłuż prostej łączącej obydwa środki
             Ball[i].Move(new double[]{pd[0] * (Ball[k].Rad - pdn / 2), pd[1] * (Ball[k].Rad - pdn / 2)});

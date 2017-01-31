@@ -51,8 +51,8 @@ public class Ball {
         double[] v, z;
         n = Utils.Norm(Vel);
         v = Utils.Normalize(Vel);
-        x = Vel[0] - i * (a + 1) * Vel[1];
-        y = Vel[1] + i * (a + 1) * Vel[0];
+        x = Vel[0] - i * (a + 1) * Vel[1] / 10;
+        y = Vel[1] + i * (a + 1) * Vel[0] / 10;
         z = Utils.Normalize(new double[]{x, y});
         Vel = new double[]{n * z[0], n * z[1]};
     }
