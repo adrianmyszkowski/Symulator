@@ -5,6 +5,8 @@
  */
 package symulator;
 
+import java.awt.*;
+
 /**
  *
  * @author nooDy
@@ -44,10 +46,28 @@ public class Ball {
         Pos[1] += v[1];
     }
 
+    void rotateVel(double a) {
+        double x, y, n;
+        double[] v, z;
+        n = Utils.Norm(Vel);
+        v = Utils.Normalize(Vel);
+        x = Vel[0] - (a + 1) * Vel[1];
+        y = Vel[1] + (a + 1) * Vel[0];
+        z = Utils.Normalize(new double[]{x, y});
+        Vel = new double[]{n * z[0], n * z[1]};
+    }
+
     double[] DistanceV(Ball b) {
         return new double[]{
             Pos[0] - b.Pos[0],
             Pos[1] - b.Pos[1]
+        };
+    }
+
+    double[] DistanceV(double[] b) {
+        return new double[]{
+            Pos[0] - b[0],
+            Pos[1] - b[1]
         };
     }
 

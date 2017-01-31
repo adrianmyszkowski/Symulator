@@ -29,15 +29,50 @@ public class Symulator extends JPanel {
     static int SZEROKOSC_OKNA = 600;
     static int WYSOKOSC_OKNA = 600;
     private Point mouseCoords = new Point();
+    private boolean mouseOnScreen = false;
     // Kulki
     int j = 200; //iloĹ›Ä‡ kulek
     Ball[] Ball = new Ball[j];
-    static int klatki = 30; // Liczba klatek/ramek na sekundÄ™
+    static int klatki = 60; // Liczba klatek/ramek na sekundÄ™
 
     // Konstruktor do tworzenia komponentĂłw
     public void generateBalls(int j) {
         for (int i = 0; i < j; i++) {
-            Ball[i] = new Ball(SZEROKOSC_OKNA, WYSOKOSC_OKNA, (int) (Math.random() * 10 + 5), new double[]{Math.random() * (6) - 3, Math.random() * (6) - 3});
+            Ball[i] = new Ball(
+                    SZEROKOSC_OKNA,
+                    WYSOKOSC_OKNA,
+                    (int) (Math.random() * 5 + 10),
+                    new double[]{Math.random() * (2) - 1, Math.random() * (2) - 1}
+            );
+        }
+    }
+
+    public void CheckCollision(int i, int k) {
+        double[] pd, pdp, term;
+        pd = Ball[i].DistanceV(Ball[k]);
+        double pdn = Utils.Norm(pd);
+        pd = Utils.Normalize(pd);
+        //zderzenia
+        if (pdn <= Ball[i].Distance(Ball[k])) {
+
+            //odpychamy od siebie kulki wzdłuż prostej łączącej obydwa środki
+            Ball[i].Move(new double[]{pd[0] * (Ball[k].Rad - pdn / 2), pd[1] * (Ball[k].Rad - pdn / 2)});
+            Ball[k].Move(new double[]{-pd[0] * (Ball[i].Rad - pdn / 2), -pd[1] * (Ball[i].Rad - pdn / 2)});
+            //nowa baza ortonormalna
+            pdp = new double[]{-pd[1], pd[0]};
+            //os rownolegla do prostej przechadzacej przez srodki kul = pd
+            //os prostopadla = pdp
+            //przy zderzeniu zamieniamy składowe równoległe
+            term = Ball[i].Vel;
+            Ball[i].Vel = new double[]{
+                pd[0] * Utils.Scalar(pd, Ball[k].Vel) + pdp[0] * Utils.Scalar(pdp, Ball[i].Vel),
+                pd[1] * Utils.Scalar(pd, Ball[k].Vel) + pdp[1] * Utils.Scalar(pdp, Ball[i].Vel)
+            };
+            Ball[k].Vel = new double[]{
+                pd[0] * Utils.Scalar(pd, term) + pdp[0] * Utils.Scalar(pdp, Ball[k].Vel),
+                pd[1] * Utils.Scalar(pd, term) + pdp[1] * Utils.Scalar(pdp, Ball[k].Vel)
+            };
+            term = null;
         }
     }
 
@@ -49,12 +84,14 @@ public class Symulator extends JPanel {
             @Override
             public void mouseMoved(MouseEvent e) {
                 mouseCoords = e.getPoint();
+                mouseOnScreen = true;
                 repaint();
             }
 
             @Override
             public void mouseExited(MouseEvent e) {
-                mouseCoords = null;
+                //mouseCoords = null;
+                mouseOnScreen = false;
                 repaint();
             }
         }
@@ -64,43 +101,23 @@ public class Symulator extends JPanel {
         symulatorWatek = new Thread() {
             public void run() {
                 generateBalls(j);
-                double[] pd, pdp, term;
                 while (true) {
-                    //zmiany w ramce
-                    //obliczanie pozycji kulek
                     for (int p = 0; p < j; p++) {
                         Ball[p].Move();
                     }
                     for (int i = 0; i < j; i++) {
                         for (int k = i + 1; k < j; k++) {
-                            pd = Ball[i].DistanceV(Ball[k]);
-                            double pdn = Utils.Norm(pd);
-                            pd = Utils.Normalize(pd);
-                            //zderzenia
-                            if (pdn <= Ball[i].Distance(Ball[k])) {
-
-                                //odpychamy od siebie kulki wzdłuż prostej łączącej obydwa środki
-                                Ball[i].Move(new double[]{pd[0] * (Ball[k].Rad - pdn / 2), pd[1] * (Ball[k].Rad - pdn / 2)});
-                                Ball[k].Move(new double[]{-pd[0] * (Ball[i].Rad - pdn / 2), -pd[1] * (Ball[i].Rad - pdn / 2)});
-                                //nowa baza ortonormalna
-                                pdp = new double[]{-pd[1], pd[0]};
-                                //os rownolegla = pd
-                                //os prostopadla = pdp
-                                //przy zderzeniu zamieniamy składowe równoległe
-                                term = Ball[i].Vel;
-                                Ball[i].Vel = new double[]{
-                                    pd[0] * Utils.Scalar(pd, Ball[k].Vel) + pdp[0] * Utils.Scalar(pdp, Ball[i].Vel),
-                                    pd[1] * Utils.Scalar(pd, Ball[k].Vel) + pdp[1] * Utils.Scalar(pdp, Ball[i].Vel)
-                                };
-                                Ball[k].Vel = new double[]{
-                                    pd[0] * Utils.Scalar(pd, term) + pdp[0] * Utils.Scalar(pdp, Ball[k].Vel),
-                                    pd[1] * Utils.Scalar(pd, term) + pdp[1] * Utils.Scalar(pdp, Ball[k].Vel)
-                                };
-                                term = null;
-                            }
+                            CheckCollision(i, k);
                         }
-                        //odbicia od krawędzi
                         Ball[i].CheckBorders(SZEROKOSC_OKNA, WYSOKOSC_OKNA);
+                        if (mouseOnScreen) {
+                            double[] d, n, v, newv;
+                            double a, vn;
+                            d = Utils.Normalize(Ball[i].DistanceV(new double[]{mouseCoords.getX(), mouseCoords.getY()}));
+                            n = Utils.Normalize(Ball[i].Vel);
+                            a = Utils.Scalar(d, n);
+                            Ball[i].rotateVel(a);
+                        }
                     }
 
                     repaint();
@@ -132,14 +149,25 @@ public class Symulator extends JPanel {
         for (int i = 0; i < j; i++) {
             g.drawLine((int) Ball[i].Pos[0], (int) Ball[i].Pos[1], (int) (Ball[i].Pos[0] + 10 * Ball[i].Vel[0]), (int) (Ball[i].Pos[1] + 10 * Ball[i].Vel[1]));
         }
-        g.setColor(Color.YELLOW);
+        g.setColor(Color.ORANGE);
         for (int i = 0; i < j; i++) {
             g.drawLine((int) Ball[i].Pos[0], (int) Ball[i].Pos[1], (int) (Ball[i].Pos[0]), (int) (Ball[i].Pos[1] + 10 * Ball[i].Vel[1]));
             g.drawLine((int) Ball[i].Pos[0], (int) Ball[i].Pos[1], (int) (Ball[i].Pos[0] + 10 * Ball[i].Vel[0]), (int) (Ball[i].Pos[1]));
         }
-        //kulka na myszy
-//        g.setColor(Color.YELLOW);
-//        g.fillOval((int) mouseCoords.getX() - 10, (int) mouseCoords.getY() - 10, 20, 20);
+        if (mouseOnScreen) {
+            g.setColor(Color.YELLOW);
+            g.fillOval((int) mouseCoords.getX() - 2, (int) mouseCoords.getY() - 2, 4, 4);
+            g.setColor(Color.GREEN);
+            for (int i = 0; i < j; i++) {
+                double[] d;
+                double a;
+                d = Utils.Normalize(Ball[i].DistanceV(new double[]{mouseCoords.getX(), mouseCoords.getY()}));
+                a = Utils.Scalar(d, Utils.Normalize(Ball[i].Vel));
+                g.drawLine((int) Ball[i].Pos[0], (int) Ball[i].Pos[1], (int) (Ball[i].Pos[0] - 10 * (1 + a) * d[0]), (int) (Ball[i].Pos[1] - 10 * (1 + a) * d[1]));
+
+            }
+
+        }
     }
 
     // GĹ‚Ăłwny program
