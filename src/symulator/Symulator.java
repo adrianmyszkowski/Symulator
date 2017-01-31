@@ -58,21 +58,21 @@ public class Symulator extends JPanel {
             //odpychamy od siebie kulki wzdłuż prostej łączącej obydwa środki
             Ball[i].Move(new double[]{pd[0] * (Ball[k].Rad - pdn / 2), pd[1] * (Ball[k].Rad - pdn / 2)});
             Ball[k].Move(new double[]{-pd[0] * (Ball[i].Rad - pdn / 2), -pd[1] * (Ball[i].Rad - pdn / 2)});
-            //nowa baza ortonormalna
-            pdp = new double[]{-pd[1], pd[0]};
-            //os rownolegla do prostej przechadzacej przez srodki kul = pd
-            //os prostopadla = pdp
-            //przy zderzeniu zamieniamy składowe równoległe
-            term = Ball[i].Vel;
-            Ball[i].Vel = new double[]{
-                pd[0] * Utils.Scalar(pd, Ball[k].Vel) + pdp[0] * Utils.Scalar(pdp, Ball[i].Vel),
-                pd[1] * Utils.Scalar(pd, Ball[k].Vel) + pdp[1] * Utils.Scalar(pdp, Ball[i].Vel)
-            };
-            Ball[k].Vel = new double[]{
-                pd[0] * Utils.Scalar(pd, term) + pdp[0] * Utils.Scalar(pdp, Ball[k].Vel),
-                pd[1] * Utils.Scalar(pd, term) + pdp[1] * Utils.Scalar(pdp, Ball[k].Vel)
-            };
-            term = null;
+//            //nowa baza ortonormalna
+//            pdp = new double[]{-pd[1], pd[0]};
+//            //os rownolegla do prostej przechadzacej przez srodki kul = pd
+//            //os prostopadla = pdp
+//            //przy zderzeniu zamieniamy składowe równoległe
+//            term = Ball[i].Vel;
+//            Ball[i].Vel = new double[]{
+//                pd[0] * Utils.Scalar(pd, Ball[k].Vel) + pdp[0] * Utils.Scalar(pdp, Ball[i].Vel),
+//                pd[1] * Utils.Scalar(pd, Ball[k].Vel) + pdp[1] * Utils.Scalar(pdp, Ball[i].Vel)
+//            };
+//            Ball[k].Vel = new double[]{
+//                pd[0] * Utils.Scalar(pd, term) + pdp[0] * Utils.Scalar(pdp, Ball[k].Vel),
+//                pd[1] * Utils.Scalar(pd, term) + pdp[1] * Utils.Scalar(pdp, Ball[k].Vel)
+//            };
+//            term = null;
         }
     }
 
@@ -111,12 +111,13 @@ public class Symulator extends JPanel {
                         }
                         Ball[i].CheckBorders(SZEROKOSC_OKNA, WYSOKOSC_OKNA);
                         if (mouseOnScreen) {
-                            double[] d, n, v, newv;
-                            double a, vn;
+                            double[] d, dp, n, v, newv;
+                            double a, b, vn;
                             d = Utils.Normalize(Ball[i].DistanceV(new double[]{mouseCoords.getX(), mouseCoords.getY()}));
-                            n = Utils.Normalize(Ball[i].Vel);
-                            a = Utils.Scalar(d, n);
-                            Ball[i].rotateVel(a);
+                            dp = new double[]{-d[1], d[0]};
+                            a = Utils.Scalar(d, Utils.Normalize(Ball[i].Vel));
+                            b = Utils.Scalar(dp, Utils.Normalize(Ball[i].Vel));
+                            Ball[i].rotateVel(a, b > 0 ? 1 : -1);
                         }
                     }
 

@@ -46,13 +46,13 @@ public class Ball {
         Pos[1] += v[1];
     }
 
-    void rotateVel(double a) {
+    void rotateVel(double a, int i) {
         double x, y, n;
         double[] v, z;
         n = Utils.Norm(Vel);
         v = Utils.Normalize(Vel);
-        x = Vel[0] - (a + 1) * Vel[1];
-        y = Vel[1] + (a + 1) * Vel[0];
+        x = Vel[0] - i * (a + 1) * Vel[1];
+        y = Vel[1] + i * (a + 1) * Vel[0];
         z = Utils.Normalize(new double[]{x, y});
         Vel = new double[]{n * z[0], n * z[1]};
     }
