@@ -5,22 +5,24 @@
  */
 package symulator;
 
+import java.awt.geom.Point2D;
+
 /**
  *
  * @author nooDy
  */
 public class Utils {
 
-    public static double Norm(double[] v) {
-        return Math.sqrt(Math.pow(v[0], 2) + Math.pow(v[1], 2));
+    public static double Norm(Point2D.Double v) {
+        return Math.sqrt(Math.pow(v.getX(), 2) + Math.pow(v.getY(), 2));
     }
 
-    public static double[] Normalize(double[] v) {
+    public static Point2D.Double Normalize(Point2D.Double v) {
         double vn = Norm(v);
-        return new double[]{v[0] / vn, v[1] / vn};
+        return new Point2D.Double(v.getX() / vn, v.getY() / vn);
     }
 
-    public static double Scalar(double[] v, double[] u) {
-        return v[0] * u[0] + v[1] * u[1];
+    public static double Scalar(Point2D.Double v, Point2D.Double u) {
+        return v.getX() * u.getX() + v.getY() * u.getY();
     }
 }

@@ -2,7 +2,9 @@ package symulator;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import javax.swing.*;
+import java.util.List;
 import javax.swing.event.MouseInputAdapter;
 
 /**
@@ -31,33 +33,34 @@ public class Symulator extends JPanel {
     private Point mouseCoords = new Point();
     private boolean mouseOnScreen = false;
     // Kulki
-    int j = 2; //iloĹ›Ä‡ kulek
-    Ball[] Ball = new Ball[j];
+    int j = 100; //iloĹ›Ä‡ kulek
+    List<Ball> Balls;
+//    Ball[] Ball = new Ball[j];
     static int klatki = 60; // Liczba klatek/ramek na sekundÄ™
 
     // Konstruktor do tworzenia komponentĂłw
     public void generateBalls(int j) {
-        for (int i = 0; i < j; i++) {
-            Ball[i] = new Ball(
+        while (j-- > 0) {
+            Balls.add(new Ball(
                     SZEROKOSC_OKNA,
                     WYSOKOSC_OKNA,
                     (int) (Math.random() * 5 + 10),
-                    new double[]{Math.random() * (2) - 1, Math.random() * (2) - 1}
-            );
+                    new Point2D.Double(Math.random() * (2) - 1, Math.random() * (2) - 1)
+            ));
         }
     }
 
     public void CheckCollision(int i, int k) {
-        double[] pd, pdp, term;
-        pd = Ball[i].DistanceV(Ball[k]);
+        Point2D.Double pd, pdp, term;
+        pd = Balls.get(i).DistanceV(Balls.get(k));
         double pdn = Utils.Norm(pd);
         pd = Utils.Normalize(pd);
         //zderzenia
-        if (pdn < Ball[i].Distance(Ball[k])) {
+        if (pdn < Balls.get(i).Distance(Balls.get(k))) {
 
             //odpychamy od siebie kulki wzdłuż prostej łączącej obydwa środki
-            Ball[i].Move(new double[]{pd[0] * (Ball[k].Rad - pdn / 2), pd[1] * (Ball[k].Rad - pdn / 2)});
-            Ball[k].Move(new double[]{-pd[0] * (Ball[i].Rad - pdn / 2), -pd[1] * (Ball[i].Rad - pdn / 2)});
+            Balls.get(i).Move(new Point2D.Double(pd.getX() * (Balls.get(k).Rad - pdn / 2 + 1), pd.getY() * (Balls.get(k).Rad - pdn / 2 + 1)));
+            Balls.get(k).Move(new Point2D.Double(-pd.getX() * (Balls.get(i).Rad - pdn / 2 + 1), -pd.getY() * (Balls.get(i).Rad - pdn / 2 + 1)));
 //            //nowa baza ortonormalna
 //            pdp = new double[]{-pd[1], pd[0]};
 //            //os rownolegla do prostej przechadzacej przez srodki kul = pd
@@ -102,22 +105,22 @@ public class Symulator extends JPanel {
             public void run() {
                 generateBalls(j);
                 while (true) {
-                    for (int p = 0; p < j; p++) {
-                        Ball[p].Move();
+                    for (Ball b : Balls) {
+                        b.Move();
                     }
                     for (int i = 0; i < j; i++) {
                         for (int k = i + 1; k < j; k++) {
                             CheckCollision(i, k);
                         }
-                        Ball[i].CheckBorders(SZEROKOSC_OKNA, WYSOKOSC_OKNA);
+                        Balls.get(i).CheckBorders(SZEROKOSC_OKNA, WYSOKOSC_OKNA);
                         if (mouseOnScreen) {
-                            double[] d, dp, n, v, newv;
-                            double a, b, vn;
-                            d = Utils.Normalize(Ball[i].DistanceV(new double[]{mouseCoords.getX(), mouseCoords.getY()}));
-                            dp = new double[]{-d[1], d[0]};
-                            a = Utils.Scalar(d, Utils.Normalize(Ball[i].Vel));
-                            b = Utils.Scalar(dp, Utils.Normalize(Ball[i].Vel));
-                            Ball[i].rotateVel(a, b > 0 ? 1 : -1);
+                            Point2D.Double d, dp;
+                            double a, b;
+                            d = Utils.Normalize(Balls.get(i).DistanceV(mouseCoords));
+                            dp = new Point2D.Double(-d.getY(), d.getX());
+                            a = Utils.Scalar(d, Utils.Normalize(Balls.get(i).Vel));
+                            b = Utils.Scalar(dp, Utils.Normalize(Balls.get(i).Vel));
+                            Balls.get(i).rotateVel(a, b > 0 ? 1 : -1);
                         }
                     }
 
@@ -144,27 +147,42 @@ public class Symulator extends JPanel {
         g.setColor(Color.BLUE);
         // Rysowanie kulek
         for (int i = 0; i < j; i++) {
-            g.fillOval((int) (Ball[i].Pos[0] - Ball[i].Rad), (int) (Ball[i].Pos[1] - Ball[i].Rad), 2 * (int) Ball[i].Rad, 2 * (int) Ball[i].Rad);
+            g.drawOval(
+                    (int) (Balls.get(i).Pos.getX() - Balls.get(i).Rad),
+                    (int) (Balls.get(i).Pos.getY() - Balls.get(i).Rad),
+                    2 * (int) Balls.get(i).Rad,
+                    2 * (int) Balls.get(i).Rad
+            );
         }
         g.setColor(Color.RED);
         for (int i = 0; i < j; i++) {
-            g.drawLine((int) Ball[i].Pos[0], (int) Ball[i].Pos[1], (int) (Ball[i].Pos[0] + 10 * Ball[i].Vel[0]), (int) (Ball[i].Pos[1] + 10 * Ball[i].Vel[1]));
+            g.drawLine(
+                    (int) Balls.get(i).Pos.getX(),
+                    (int) Balls.get(i).Pos.getY(),
+                    (int) (Balls.get(i).Pos.getX() + 10 * Balls.get(i).Vel.getX()),
+                    (int) (Balls.get(i).Pos.getY() + 10 * Balls.get(i).Vel.getY())
+            );
         }
-        g.setColor(Color.ORANGE);
-        for (int i = 0; i < j; i++) {
-            g.drawLine((int) Ball[i].Pos[0], (int) Ball[i].Pos[1], (int) (Ball[i].Pos[0]), (int) (Ball[i].Pos[1] + 10 * Ball[i].Vel[1]));
-            g.drawLine((int) Ball[i].Pos[0], (int) Ball[i].Pos[1], (int) (Ball[i].Pos[0] + 10 * Ball[i].Vel[0]), (int) (Ball[i].Pos[1]));
-        }
+//        g.setColor(Color.ORANGE);
+//        for (int i = 0; i < j; i++) {
+//            g.drawLine((int) Ball[i].Pos[0], (int) Ball[i].Pos[1], (int) (Ball[i].Pos[0]), (int) (Ball[i].Pos[1] + 10 * Ball[i].Vel[1]));
+//            g.drawLine((int) Ball[i].Pos[0], (int) Ball[i].Pos[1], (int) (Ball[i].Pos[0] + 10 * Ball[i].Vel[0]), (int) (Ball[i].Pos[1]));
+//        }
         if (mouseOnScreen) {
-            g.setColor(Color.YELLOW);
-            g.fillOval((int) mouseCoords.getX() - 2, (int) mouseCoords.getY() - 2, 4, 4);
+//            g.setColor(Color.YELLOW);
+//            g.fillOval((int) mouseCoords.getX() - 2, (int) mouseCoords.getY() - 2, 4, 4);
             g.setColor(Color.GREEN);
             for (int i = 0; i < j; i++) {
-                double[] d;
+                Point2D.Double d;
                 double a;
-                d = Utils.Normalize(Ball[i].DistanceV(new double[]{mouseCoords.getX(), mouseCoords.getY()}));
-                a = Utils.Scalar(d, Utils.Normalize(Ball[i].Vel));
-                g.drawLine((int) Ball[i].Pos[0], (int) Ball[i].Pos[1], (int) (Ball[i].Pos[0] - 10 * (1 + a) * d[0]), (int) (Ball[i].Pos[1] - 10 * (1 + a) * d[1]));
+                d = Utils.Normalize(Balls.get(i).DistanceV(mouseCoords));
+                a = Utils.Scalar(d, Utils.Normalize(Balls.get(i).Vel));
+                g.drawLine(
+                        (int) Balls.get(i).Pos.getX(),
+                        (int) Balls.get(i).Pos.getY(),
+                        (int) (Balls.get(i).Pos.getX() - 10 * (1 + a) * d.getX()),
+                        (int) (Balls.get(i).Pos.getY() - 10 * (1 + a) * d.getY())
+                );
 
             }
 

@@ -5,7 +5,8 @@
  */
 package symulator;
 
-import java.awt.*;
+import java.awt.Point;
+import java.awt.geom.Point2D;
 
 /**
  *
@@ -13,62 +14,66 @@ import java.awt.*;
  */
 public class Ball {
 
-    double[] Pos = new double[2];//pozycja
-    double[] Vel = new double[2];//prędkość
+    Point2D.Double Pos;//pozycja
+    Point2D.Double Vel;//prędkość
     int Rad;//promień
     //double Mass//masa
 
     Ball() {
-        Pos = new double[]{1, 1};
-        Vel = new double[]{1, 1};
+        Pos = new Point2D.Double(1, 1);
+        Vel = new Point2D.Double(1, 1);
         Rad = 1;
     }
 
-    Ball(double pos[], int rad, double vel[]) {
+    Ball(Point2D.Double pos, int rad, Point2D.Double vel) {
         Pos = pos;
         Vel = vel;
         Rad = rad;
     }
 
-    Ball(int windowwidth, int windowheight, int rad, double vel[]) {
-        Pos = new double[]{Math.floor(Math.random() * (windowwidth - 2 * rad)) + rad, Math.floor(Math.random() * (windowheight - 2 * rad)) + rad};
+    Ball(int windowwidth, int windowheight, int rad, Point2D.Double vel) {
+        Pos = new Point2D.Double((int) Math.floor(Math.random() * (windowwidth - 2 * rad) + rad), (int) Math.floor(Math.random() * (windowheight - 2 * rad) + rad));
         Vel = vel;
         Rad = rad;
     }
 
     void Move() {
-        Pos[0] += Vel[0];
-        Pos[1] += Vel[1];
+        Pos.setLocation(Pos.getX() + Vel.getX(), Pos.getY() + Vel.getY());
+    }
+
+    void Move(Point2D.Double v) {
+        Pos.setLocation(Pos.getX() + v.getX(), Pos.getY() + v.getY());
     }
 
     void Move(double[] v) {
-        Pos[0] += v[0];
-        Pos[1] += v[1];
+        Pos.setLocation(Pos.getX() + v[0], Pos.getY() + v[1]);
     }
 
     void rotateVel(double a, int i) {
         double x, y, n;
-        double[] v, z;
+        Point2D.Double v, z;
         n = Utils.Norm(Vel);
         v = Utils.Normalize(Vel);
-        x = Vel[0] - i * (a + 1) * Vel[1] / 10;
-        y = Vel[1] + i * (a + 1) * Vel[0] / 10;
-        z = Utils.Normalize(new double[]{x, y});
-        Vel = new double[]{n * z[0], n * z[1]};
+        x = Vel.getX() - i * (a + 1) * Vel.getY() / 20;
+        y = Vel.getY() + i * (a + 1) * Vel.getX() / 20;
+        z = Utils.Normalize(new Point2D.Double(x, y));
+        Vel.setLocation(new Point2D.Double(n * z.getX(), n * z.getY()));
     }
 
-    double[] DistanceV(Ball b) {
-        return new double[]{
-            Pos[0] - b.Pos[0],
-            Pos[1] - b.Pos[1]
-        };
+    Point2D.Double DistanceV(Ball b) {
+        return new Point2D.Double(Pos.getX() - b.Pos.getX(), Pos.getY() - b.Pos.getY());
     }
 
-    double[] DistanceV(double[] b) {
-        return new double[]{
-            Pos[0] - b[0],
-            Pos[1] - b[1]
-        };
+    Point2D.Double DistanceV(Point2D.Double b) {
+        return new Point2D.Double(Pos.getX() - b.getX(), Pos.getY() - b.getY());
+    }
+
+    Point2D.Double DistanceV(Point b) {
+        return new Point2D.Double(Pos.getX() - b.getX(), Pos.getY() - b.getY());
+    }
+
+    Point2D.Double DistanceV(double[] b) {
+        return new Point2D.Double(Pos.getX() - b[0], Pos.getY() - b[1]);
     }
 
     int Distance(Ball b) {
@@ -76,19 +81,19 @@ public class Ball {
     }
 
     void CheckBorders(int w, int h) {
-        if (Pos[0] >= w - Rad) {
-            Pos[0] -= 2 * (Rad - (w - Pos[0]));
-            Vel[0] *= -1;
-        } else if (Pos[0] <= Rad) {
-            Pos[0] += 2 * (Rad - Pos[0]);
-            Vel[0] *= -1;
+        if (Pos.getX() >= w - Rad) {
+            Pos.setLocation(Pos.getX() - 2 * (Rad - (w - Pos.getX())), Pos.getY());
+            Vel.setLocation(-Vel.getX(), Vel.getY());
+        } else if (Pos.getX() <= Rad) {
+            Pos.setLocation(Pos.getX() + 2 * (Rad - Pos.getX()), Pos.getY());
+            Vel.setLocation(-Vel.getX(), Vel.getY());
         }
-        if (Pos[1] >= h - Rad) {
-            Pos[1] -= 2 * (Rad - (h - Pos[1]));
-            Vel[1] *= -1;
-        } else if (Pos[1] <= Rad) {
-            Pos[1] += 2 * (Rad - Pos[1]);
-            Vel[1] *= -1;
+        if (Pos.getY() >= h - Rad) {
+            Pos.setLocation(Pos.getX(), Pos.getY() - 2 * (Rad - (h - Pos.getY())));
+            Vel.setLocation(Vel.getX(), -Vel.getY());
+        } else if (Pos.getY() <= Rad) {
+            Pos.setLocation(Pos.getX(), Pos.getY() + 2 * (Rad - Pos.getY()));
+            Vel.setLocation(Vel.getX(), -Vel.getY());
         }
     }
 }
