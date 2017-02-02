@@ -3,6 +3,7 @@ package symulator;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import javax.swing.*;
 import java.util.List;
 import javax.swing.event.MouseInputAdapter;
@@ -33,13 +34,14 @@ public class Symulator extends JPanel {
     private Point mouseCoords = new Point();
     private boolean mouseOnScreen = false;
     // Kulki
-    int j = 100; //iloĹ›Ä‡ kulek
+    int j = 10; //iloĹ›Ä‡ kulek
     List<Ball> Balls;
-//    Ball[] Ball = new Ball[j];
+    List<String> Test;
     static int klatki = 60; // Liczba klatek/ramek na sekundÄ™
 
     // Konstruktor do tworzenia komponentĂłw
     public void generateBalls(int j) {
+        Balls = new ArrayList();
         while (j-- > 0) {
             Balls.add(new Ball(
                     SZEROKOSC_OKNA,
@@ -50,33 +52,19 @@ public class Symulator extends JPanel {
         }
     }
 
-    public void CheckCollision(int i, int k) {
-        Point2D.Double pd, pdp, term;
+    public boolean CheckCollision(int i, int k) {
+        Point2D.Double pd;
         pd = Balls.get(i).DistanceV(Balls.get(k));
         double pdn = Utils.Norm(pd);
         pd = Utils.Normalize(pd);
         //zderzenia
         if (pdn < Balls.get(i).Distance(Balls.get(k))) {
-
             //odpychamy od siebie kulki wzdłuż prostej łączącej obydwa środki
             Balls.get(i).Move(new Point2D.Double(pd.getX() * (Balls.get(k).Rad - pdn / 2 + 1), pd.getY() * (Balls.get(k).Rad - pdn / 2 + 1)));
             Balls.get(k).Move(new Point2D.Double(-pd.getX() * (Balls.get(i).Rad - pdn / 2 + 1), -pd.getY() * (Balls.get(i).Rad - pdn / 2 + 1)));
-//            //nowa baza ortonormalna
-//            pdp = new double[]{-pd[1], pd[0]};
-//            //os rownolegla do prostej przechadzacej przez srodki kul = pd
-//            //os prostopadla = pdp
-//            //przy zderzeniu zamieniamy składowe równoległe
-//            term = Ball[i].Vel;
-//            Ball[i].Vel = new double[]{
-//                pd[0] * Utils.Scalar(pd, Ball[k].Vel) + pdp[0] * Utils.Scalar(pdp, Ball[i].Vel),
-//                pd[1] * Utils.Scalar(pd, Ball[k].Vel) + pdp[1] * Utils.Scalar(pdp, Ball[i].Vel)
-//            };
-//            Ball[k].Vel = new double[]{
-//                pd[0] * Utils.Scalar(pd, term) + pdp[0] * Utils.Scalar(pdp, Ball[k].Vel),
-//                pd[1] * Utils.Scalar(pd, term) + pdp[1] * Utils.Scalar(pdp, Ball[k].Vel)
-//            };
-//            term = null;
+            return true;
         }
+        return false;
     }
 
     public Symulator() {
